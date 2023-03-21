@@ -270,12 +270,18 @@ def cargos():
         total_seconds = 0
     if total_seconds<1800:           
         span_element = driver.find_element(By.ID, "resources_metal")
-        data_raw = span_element.text.replace(".", "")
-        metal = float(data_raw)
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            metal = float(data_raw[:-1]) * 1000000
+        else:
+            metal = float(data_raw)
         #crystal
         span_element = driver.find_element(By.ID, "resources_crystal")
-        data_raw = span_element.text.replace(".", "")
-        crystal = float(data_raw)
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            metal = float(data_raw[:-1]) * 1000000
+        else:
+            metal = float(data_raw)
         if metal>6020 and crystal>6020:     
             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies_civil"]/ul/li[2]'))).click()
             amount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
