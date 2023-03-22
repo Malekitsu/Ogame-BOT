@@ -34,7 +34,7 @@ time.sleep(1)
 accept_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//button[@title='Consenti cookie essenziali e facoltativi']")))
 accept_button.click()
 email_field = wait.until(EC.element_to_be_clickable((By.XPATH,"//input[@id='email']")))
-email_field.send_keys("e-mail")
+email_field.send_keys("email")
 password_field = wait.until(EC.element_to_be_clickable((By.XPATH,"//input[@id='pass']")))
 password_field.send_keys("password")
 time.sleep(1)
@@ -120,7 +120,7 @@ def mines():
     global y
     y=y+5
     print(int(y))
-    time.sleep(10)  
+    time.sleep(120)  
     while driver.current_url !="https://s196-it.ogame.gameforge.com/game/index.php?page=ingame&component=overview":
         #rand=random.uniform(1,10)
         #time.sleep(rand)
@@ -196,7 +196,7 @@ def mines():
                 print("Deuterium Upgraded")
             except:
                 pass
-        helpcolonies()
+        expeditions()
     while driver.current_url !="https://s196-it.ogame.gameforge.com/game/index.php?page=ingame&component=supplies":
         time.sleep(10)
         print("Idle, trying to restart in 10 seconds")
@@ -274,13 +274,14 @@ def expeditions():
         totalExpedition = int(numbers[1])  # convert the second number to an integer and store it in variable y
         slotAvailable=totalExpedition-currentExpedition
         time.sleep(1)
-    cargos()
+    helpcolonies()
     
     
 #wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33624434"]/a'
 
 ###CREATE NEW CARGOS
 def cargos():
+    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click() 
     wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[7]/a'))).click()
     try:
         times=driver.find_element(By.ID,'shipyardCountdown2')
@@ -326,8 +327,8 @@ def cargos():
             except:
                 print("Cargo building went wrong, trying again later")  
             
-            expeditions()
-    expeditions()
+            mines()
+    mines()
     
 
 
@@ -491,6 +492,8 @@ def helpcolonies():
                         crystalamount.send_keys(f"{missingcrystal}")                    
                         time.sleep(1)                                                          
                         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="sendFleet"]'))).click()
-    expeditions()                    
+    cargos()                    
                        
 mines()
+
+        
