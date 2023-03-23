@@ -36,7 +36,7 @@ accept_button.click()
 email_field = wait.until(EC.element_to_be_clickable((By.XPATH,"//input[@id='email']")))
 email_field.send_keys("email")
 password_field = wait.until(EC.element_to_be_clickable((By.XPATH,"//input[@id='pass']")))
-password_field.send_keys("password")
+password_field.send_keys("pass")
 time.sleep(1)
 login_button = wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="loginbutton"]')))
 login_button.click()
@@ -111,16 +111,42 @@ time.sleep(1)
 ###############################   
 ###Start variables here
 expeditionSentNumber=0
-y=-5
+y=0
 #AUTOMATIC MINE DEVELOPMENT
 def mines():
     time.sleep(1)
-    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
-    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click()   
+    try:
+        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()  
+    except:
+        pass
     global y
-    y=y+5
-    print(int(y))
-    time.sleep(120)  
+    y=y+1
+    time.sleep(10) 
+    print("Cycle n°",y,"starting in 10 seconds")
+    time.sleep(10)
+    try:
+        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click()   
+    except:
+        pass
+    if driver.current_url =="https://lobby.ogame.gameforge.com/it_IT/hub":
+        try:
+            gioca=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="joinGame"]/button')))
+            gioca.click()
+            #cancella l'altra scheda
+            parent = driver.window_handles[1]
+            chld = driver.window_handles[0]
+            driver.switch_to.window(chld)
+            time.sleep(3)
+            driver.close()
+            # Switch back to the main window
+            driver.switch_to.window(parent)    
+            #let's start the game
+            wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
+            time.sleep(1)  
+        except:
+            time.sleep(60)
+            mines()
+            
     while driver.current_url !="https://s196-it.ogame.gameforge.com/game/index.php?page=ingame&component=overview":
         #rand=random.uniform(1,10)
         #time.sleep(rand)
@@ -171,7 +197,7 @@ def mines():
         except:
             total_seconds = 0 
         if total_seconds != 0:
-            helpcolonies()
+            expeditions()
         elif energy<0 and level<=20:
             try :
                 wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[4]/span/button'))).click()
@@ -279,60 +305,6 @@ def expeditions():
     
 #wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33624434"]/a'
 
-###CREATE NEW CARGOS
-def cargos():
-    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click() 
-    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[7]/a'))).click()
-    try:
-        times=driver.find_element(By.ID,'shipyardCountdown2')
-        times=times.text
-        components = times.split()
-        hours = 0
-        minutes = 0
-        seconds = 0
-        for comp in components:
-            if comp.endswith('o') or comp.endswith('h'):
-                hours = int(comp[:-1])
-            elif comp.endswith('m'):
-                minutes = int(comp[:-1])
-            elif comp.endswith('s'):
-                seconds = int(comp[:-1])
-        total_seconds = hours * 3600 + minutes * 60 + seconds
-    except:
-        total_seconds = 0
-    if total_seconds<1800:           
-        span_element = driver.find_element(By.ID, "resources_metal")
-        data_raw = span_element.text.replace(".", "").replace(",",".")
-        if data_raw[-1] == "M":
-            metal = float(data_raw[:-1]) * 1000000
-        else:
-            metal = float(data_raw)
-        #crystal
-        span_element = driver.find_element(By.ID, "resources_crystal")
-        data_raw = span_element.text.replace(".", "").replace(",",".")
-        if data_raw[-1] == "M":
-            crystal = float(data_raw[:-1]) * 1000000
-        else:
-            crystal = float(data_raw)
-        if metal>6020 and crystal>6020:     
-            wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies_civil"]/ul/li[2]'))).click()
-            amount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
-            amount.click()
-            amount.send_keys(5)
-            try:
-                amount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologydetails"]/div[2]/div/div[3]/button')))
-                amount.click()
-                print("Cargo Builded")
-                mines()
-            except:
-                print("Cargo building went wrong, trying again later")  
-            
-            mines()
-    mines()
-    
-
-
-
 def helpcolonies():
     
     for i in [33626272,33626296]:
@@ -370,7 +342,7 @@ def helpcolonies():
             totdeutcost = int(375*1.5**level)
             deut_metalneeded = int(225*1.5**level)
             deut_crystalneeded = int(75*1.5**level)
-            
+           
             #solar cost
             parent_span_element = driver.find_element(By.CLASS_NAME,"solarPlant")
             child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
@@ -440,26 +412,29 @@ def helpcolonies():
                     crystal = float(data_raw[:-1]) * 1000000
                 else:
                     crystal = float(data_raw) 
-                    
-                missingmetal=metal-deut_metalneeded
-                missingcrystal=crystal-deut_crystalneeded
-                if missingmetal>0 and missingcrystal>0:
+                
+                missingmetal=int(max(-missingmetal,0))
+                missingcrystal=int(max(-missingcrystal,0))
+                missingmetal1=metal-missingmetal
+                missingcrystal1=crystal-missingcrystal
+                
+                print(missingmetal,missingcrystal)
+                
+                if missingmetal1>0 and missingcrystal1>0:
                     #check first research level
                     wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[6]/a'))).click()
                     parent_span_element = driver.find_element(By.CLASS_NAME,"hyperspaceTechnology")
                     child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
                     techlevel = int(child_span_element.get_attribute("data-value"))
                     
-                    cargoneeded=math.ceil(missingmetal+missingcrystal)/(25000*(1+0.05*techlevel))
+                    cargoneeded=math.ceil((missingmetal+missingcrystal)/(25000*(1+0.05*techlevel)))
                     wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[9]/a'))).click()
                     
-                    print(cargoneeded)
                     #Large Cargo
                     SHIP = driver.find_element(By.CLASS_NAME,"transporterLarge") 
                     SHIP2 = SHIP.find_element(By.CLASS_NAME,"amount") 
                     NSHIP = int(SHIP2.get_attribute("data-value"))
                     
-                    print(NSHIP)
                     if NSHIP>cargoneeded:                   
                         ASHIP=driver.find_element(By.XPATH,'//*[@id="civil"]/li[2]/input')
                         ASHIP.click()
@@ -470,30 +445,88 @@ def helpcolonies():
                         span_element = planet_element.find_element(By.XPATH, ".//span[contains(@class, 'planet-koords')]")
                         coords = span_element.text
                         x, y, z = coords[1:-1].split(':')
-                        x=1
-                        
                         #send
                         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="continueToFleet2"]'))).click()
                         coordinate1=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="galaxy"]')))
                         coordinate1.click()
                         coordinate1.send_keys(f"{x}")
-                        coordinate2=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="position"]')))
+                        coordinate2=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="system"]')))
                         coordinate2.click()
                         coordinate2.send_keys(f"{y}")
                         coordinate3=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="position"]')))
                         coordinate3.click()
                         coordinate3.send_keys(f"{z}")
-                        time.sleep(1)                   
+                        time.sleep(1) 
+                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="missionButton3"]'))).click()
                         metalamount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="metal"]')))
                         metalamount.click()
-                        metalamount.send_keys(f"{missingmetal}")                   
-                        crystalamount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="metal"]')))
+                        metalamount.send_keys(f"{missingmetal}") 
+                        crystalamount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="crystal"]')))
                         crystalamount.click()
-                        crystalamount.send_keys(f"{missingcrystal}")                    
-                        time.sleep(1)                                                          
+                        crystalamount.send_keys(f"{missingcrystal}")                                                                                                   
                         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="sendFleet"]'))).click()
-    cargos()                    
-                       
-mines()
+                        time.sleep(1)  
+                        print("sent",missingmetal,"Metal and",missingcrystal,"Crystal at",coords)
+    cargos()  
+    
 
+###CREATE NEW CARGOS
+def cargos():
+    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click() 
+    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[7]/a'))).click()
+    try:
+        times=driver.find_element(By.ID,'shipyardCountdown2')
+        times=times.text
+        components = times.split()
+        hours = 0
+        minutes = 0
+        seconds = 0
+        for comp in components:
+            if comp.endswith('o') or comp.endswith('h'):
+                hours = int(comp[:-1])
+            elif comp.endswith('m'):
+                minutes = int(comp[:-1])
+            elif comp.endswith('s'):
+                seconds = int(comp[:-1])
+        total_seconds = hours * 3600 + minutes * 60 + seconds
+    except:
+        total_seconds = 0
+    if total_seconds<1800:           
+        span_element = driver.find_element(By.ID, "resources_metal")
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            metal = float(data_raw[:-1]) * 1000000
+        else:
+            metal = float(data_raw)
+        #crystal
+        span_element = driver.find_element(By.ID, "resources_crystal")
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            crystal = float(data_raw[:-1]) * 1000000
+        else:
+            crystal = float(data_raw)
+        if metal>6020 and crystal>6020:     
+            wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies_civil"]/ul/li[2]'))).click()
+            amount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
+            amount.click()
+            amount.send_keys(5)
+            try:
+                amount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologydetails"]/div[2]/div/div[3]/button')))
+                amount.click()
+                print("Cargo Builded")
+                mines()
+            except:
+                print("Cargo building went wrong, trying again later")  
+    mines()
+    
+
+
+
+def loop():                  
+    try:
+        mines()
+    except:
+        print("error, restarting")
+        loop()
         
+loop()        
