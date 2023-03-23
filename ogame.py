@@ -307,7 +307,7 @@ def expeditions():
 
 def helpcolonies():
     
-    for i in [33626272,33626296]:
+    for i in [33626272,33626296,33626770]:
         try:
             wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="planet-{i}"]'))).click()
             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
