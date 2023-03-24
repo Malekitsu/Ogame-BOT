@@ -94,8 +94,8 @@ def mines():
     global y
     y=y+1
     time.sleep(10) 
-    print("Cycle n°",y,"starting in 5 minutes")
-    time.sleep(300)
+    print("Cycle n°",y,"starting in 30 minutes")
+    time.sleep(1800)
     try:
         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click()   
     except:
@@ -172,7 +172,85 @@ def mines():
             total_seconds = 0 
         if total_seconds != 0:
             expeditions()
-        elif energy<0 and level<=20:
+            
+        #current metal
+        span_element = driver.find_element(By.ID, "resources_metal")
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            metal = float(data_raw[:-1]) * 1000000
+        else:
+            metal = float(data_raw)
+        
+        # current crystal
+        span_element = driver.find_element(By.ID, "resources_crystal")
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            crystal = float(data_raw[:-1]) * 1000000
+        else:
+            crystal = float(data_raw)
+        
+        # current deuterium
+        span_element = driver.find_element(By.ID, "resources_deuterium")
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            deuterium = float(data_raw[:-1]) * 1000000
+        else:
+            deuterium = float(data_raw)
+        
+        
+        #get deposit levels
+        
+        # metal deposit storage
+        parent_span_element = driver.find_element(By.CLASS_NAME,"metalStorage")
+        child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+        level = int(child_span_element.get_attribute("data-value"))
+        mstorage = 5000*(2.5*math.exp(20/33*level))
+        #mstorage_metalneeded = int(1000*2**(level-1))
+        #mstorage_crystalneeded = 0
+        
+        # crystal deposit storage
+        parent_span_element = driver.find_element(By.CLASS_NAME,"crystalStorage")
+        child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+        level = int(child_span_element.get_attribute("data-value"))
+        cstorage = 5000*(2.5*math.exp(20/33*level))
+        #cstorage_metalneeded = int(1000*2**(level-1))
+        #cstorage_crystalneeded = int(500*2**(level-1))
+        
+        # deuterium deposit storage
+        parent_span_element = driver.find_element(By.CLASS_NAME,"deuteriumStorage")
+        child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+        level = int(child_span_element.get_attribute("data-value"))
+        dstorage = 5000*(2.5*math.exp(20/33*level))
+        #dstorage_metalneeded = int(1000*2**(level-1))
+        #dstorage_crystalneeded = int(1000*2**(level-1))
+        
+           
+                    
+        #compare with current resources
+        if metal>mstorage*0.9:
+            try:
+                wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[8]/span/button'))).click()
+                print(f"Colony {i} Metal Deposit Upgraded")
+                expeditions()
+            except:
+                print("Couldn't build Metal Deposit")
+        elif crystal>cstorage*0.9:
+            try:
+                wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[9]/span/button'))).click()
+                print(f"Colony {i} Crystal Deposit Upgraded")
+                expeditions()
+            except:
+                print("Couldn't build Crystal Deposit")
+        elif deuterium>dstorage*0.9:
+            try:
+                wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[10]/span/button'))).click()
+                print(f"Colony {i} Deuterium Deposit Upgraded")
+                expeditions()
+            except:
+                print("Couldn't build Deuterium Deposit")
+            
+        
+        if energy<0 and level<=20:
             try :
                 wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[4]/span/button'))).click()
                 print("Solar Upgraded")
@@ -250,6 +328,19 @@ def expeditions():
             ASHIP.send_keys("1")
         except:
             print("No Pathfinders")
+        #extra ship
+        battleshipsent=0
+        for l in [9,7,6,5,4]:
+            if battleshipsent==0:
+                try:
+                    ASHIP=driver.find_element(By.XPATH,f'//*[@id="military"]/li[{l}]/input')
+                    ASHIP.click()
+                    ASHIP.send_keys("1")
+                    battleshipsent=1
+                except:
+                    pass
+            
+        
         ###continue
         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="continueToFleet2"]'))).click()
         coordinate3=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="position"]')))
@@ -276,7 +367,7 @@ def expeditions():
 
 def helpcolonies():
     
-    for i in [33626272,33626296,33626770]:
+    for i in [33626272,33626296,33626770,33627135,33627278]:
         planetdata={}
         
         try:
@@ -363,8 +454,6 @@ def helpcolonies():
             totdeutcost = int(375*1.5**level)
             deut_metalneeded = int(225*1.5**level)
             deut_crystalneeded = int(75*1.5**level)
-           
-            
             
             #current metal
             span_element = driver.find_element(By.ID, "resources_metal")
@@ -382,6 +471,92 @@ def helpcolonies():
             else:
                 crystal = float(data_raw)
             
+            # current deuterium
+            span_element = driver.find_element(By.ID, "resources_deuterium")
+            data_raw = span_element.text.replace(".", "").replace(",",".")
+            if data_raw[-1] == "M":
+                deuterium = float(data_raw[:-1]) * 1000000
+            else:
+                deuterium = float(data_raw)
+            
+            
+            #get deposit levels
+            
+            # metal deposit storage
+            parent_span_element = driver.find_element(By.CLASS_NAME,"metalStorage")
+            child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+            level = int(child_span_element.get_attribute("data-value"))
+            mstorage = 5000*(2.5*math.exp(20/33*level))
+            #mstorage_metalneeded = int(1000*2**(level-1))
+            #mstorage_crystalneeded = 0
+            
+            # crystal deposit storage
+            parent_span_element = driver.find_element(By.CLASS_NAME,"crystalStorage")
+            child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+            level = int(child_span_element.get_attribute("data-value"))
+            cstorage = 5000*(2.5*math.exp(20/33*level))
+            #cstorage_metalneeded = int(1000*2**(level-1))
+            #cstorage_crystalneeded = int(500*2**(level-1))
+            
+            # deuterium deposit storage
+            parent_span_element = driver.find_element(By.CLASS_NAME,"deuteriumStorage")
+            child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+            level = int(child_span_element.get_attribute("data-value"))
+            dstorage = 5000*(2.5*math.exp(20/33*level))
+            #dstorage_metalneeded = int(1000*2**(level-1))
+            #dstorage_crystalneeded = int(1000*2**(level-1))
+            
+            ###ROBOT AND NANITES BUILDER
+            
+            if metal>210000 and crystal>64000 and deuterium>102400:
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[4]/a'))).click()
+                #get robots
+                parent_span_element = driver.find_element(By.CLASS_NAME,"roboticsFactory")
+                child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+                level = int(child_span_element.get_attribute("data-value"))
+                if level<10:
+                    try:
+                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies"]/ul/li[1]/span/button'))).click()
+                        print(f"Colony {i} Robot Upgraded")
+                        continue
+                    except:
+                        pass
+                    
+                elif metal>1000000 and crystal>500000 and deuterium>100000:
+                    parent_span_element = driver.find_element(By.CLASS_NAME,"naniteFactory")
+                    child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+                    level = int(child_span_element.get_attribute("data-value"))
+                    if level==0:
+                        try:
+                            wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies"]/ul/li[6]/span/button'))).click()
+                            print(f"Colony {i} Nanite Upgraded")
+                            continue
+                        except:
+                            pass              
+                        
+            #compare with current resources
+            if metal>mstorage*0.9:
+                try:
+                    wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[8]/span/button'))).click()
+                    print(f"Colony {i} Metal Deposit Upgraded")
+                    continue
+                except:
+                    print("Couldn't build Metal Deposit")
+            elif crystal>cstorage*0.9:
+                try:
+                    wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[9]/span/button'))).click()
+                    print(f"Colony {i} Crystal Deposit Upgraded")
+                    continue
+                except:
+                    print("Couldn't build Crystal Deposit")
+            elif deuterium>dstorage*0.9:
+                try:
+                    wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[10]/span/button'))).click()
+                    print(f"Colony {i} Deuterium Deposit Upgraded")
+                    continue
+                except:
+                    print("Couldn't build Deuterium Deposit")
+               
             #mines           
             if energy<0 and solarlevel<20:
                 missingmetal= metal-solar_metalneeded
@@ -404,13 +579,11 @@ def helpcolonies():
                 try :
                     wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[{up}]/span/button'))).click()
                     print(f"Colony {i} {up} Upgraded")
-                    cargos()
+                    continue
                 except:
                     print("couldn't upgrade") 
-                    cargos()
-                    
-                    
-                    
+                    continue
+                   
             else:
                 #get coordinates
                 planet_element= driver.find_element(By.XPATH, f'//*[@id="planet-{i}"]')
