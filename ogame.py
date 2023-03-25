@@ -94,8 +94,10 @@ def mines():
     global y
     y=y+1
     time.sleep(10) 
-    print("Cycle n°",y,"starting in 10 minutes")
-    time.sleep(600)
+    restsec=60
+    restmin=int(restsec/60)
+    print("Cycle n°",y,"starting in",restmin," minutes")
+    time.sleep(restsec)
     try:
         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click()   
     except:
@@ -387,43 +389,6 @@ def helpcolonies():
         data_raw = span_element.text.replace(".", "")
         energy = float(data_raw)
         
-        #satelites builder
-        if energy<0 and solarlevel>=20:
-            ###check if there are satelites under construction
-            satcon=0
-            for j in range(1,5):
-                for k in range(1,6):        
-                    try:
-                        td_element = driver.find_element(By.XPATH, f'//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[2]/tbody/tr[{j}]/td[{k}]')
-                        img_element = td_element.find_element(By.TAG_NAME, "img")
-                        src = img_element.get_attribute("src")
-                        if src == "https://gf2.geo.gfsrv.net/cdnd3/5f3ca7e91fc0a9b1ee014c3c01ea41.jpg":
-                            satcon=1
-                    except:
-                        pass
-
-            try:
-                td_element = driver.find_element(By.XPATH, '//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[1]/tbody/tr[2]/td/div[1]')
-                img_element = td_element.find_element(By.TAG_NAME, "img")
-                src = img_element.get_attribute("src")
-                if src == "https://gf2.geo.gfsrv.net/cdnda/665c65072887153d44a6684ec276e9.jpg":
-                    satcon=1
-            except:
-                pass
-            if satcon==0:
-                try:
-                    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[6]'))).click()
-                    text=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
-                    text.click()
-                    text.send_keys(10)
-                    try:
-                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologydetails"]/div[2]/div/div[3]/button'))).click()
-                        print("satelites built")
-                    except:
-                        print("couldn't build satelites")
-                except:
-                    print("satelites not available")
-        
         try:
             times=driver.find_element(By.ID,'buildingCountdown')
             total_seconds = 1
@@ -525,7 +490,7 @@ def helpcolonies():
                     parent_span_element = driver.find_element(By.CLASS_NAME,"naniteFactory")
                     child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
                     level = int(child_span_element.get_attribute("data-value"))
-                    if 2^level*1000000<metal:
+                    if 2^level*1000000<metal and level <4:
                         try:
                             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies"]/ul/li[6]/span/button'))).click()
                             print(f"Colony {i} Nanite Upgraded")
@@ -533,8 +498,45 @@ def helpcolonies():
                         except:
                             pass 
                 wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
-                        
-            #compare with current resources
+            
+            #satelites builder
+            if energy<0 and solarlevel>=20:
+                ###check if there are satelites under construction
+                satcon=0
+                for j in range(1,5):
+                    for k in range(1,6):        
+                        try:
+                            td_element = driver.find_element(By.XPATH, f'//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[2]/tbody/tr[{j}]/td[{k}]')
+                            img_element = td_element.find_element(By.TAG_NAME, "img")
+                            src = img_element.get_attribute("src")
+                            if src == "https://gf2.geo.gfsrv.net/cdnd3/5f3ca7e91fc0a9b1ee014c3c01ea41.jpg":
+                                satcon=1
+                        except:
+                            pass
+
+                try:
+                    td_element = driver.find_element(By.XPATH, '//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[1]/tbody/tr[2]/td/div[1]')
+                    img_element = td_element.find_element(By.TAG_NAME, "img")
+                    src = img_element.get_attribute("src")
+                    if src == "https://gf2.geo.gfsrv.net/cdnda/665c65072887153d44a6684ec276e9.jpg":
+                        satcon=1
+                except:
+                    pass
+                if satcon==0:
+                    try:
+                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[6]'))).click()
+                        text=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
+                        text.click()
+                        text.send_keys(10)
+                        try:
+                            wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologydetails"]/div[2]/div/div[3]/button'))).click()
+                            print("satelites built")
+                        except:
+                            print("couldn't build satelites")
+                    except:
+                        print("satelites not available")    
+            
+            #compare storage with current resources
             if metal>mstorage*0.9:
                 try:
                     wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[8]/span/button'))).click()
