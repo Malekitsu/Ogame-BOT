@@ -94,8 +94,8 @@ def mines():
     global y
     y=y+1
     time.sleep(10) 
-    print("Cycle n°",y,"starting in 30 minutes")
-    time.sleep(1800)
+    print("Cycle n°",y,"starting in 10 minutes")
+    time.sleep(600)
     try:
         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click()   
     except:
@@ -118,7 +118,6 @@ def mines():
             #let's start the game
             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
             time.sleep(1)
-            mines()
         except:
             time.sleep(60)
             mines()
@@ -526,13 +525,14 @@ def helpcolonies():
                     parent_span_element = driver.find_element(By.CLASS_NAME,"naniteFactory")
                     child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
                     level = int(child_span_element.get_attribute("data-value"))
-                    if level==0:
+                    if 2^level*1000000<metal:
                         try:
                             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies"]/ul/li[6]/span/button'))).click()
                             print(f"Colony {i} Nanite Upgraded")
                             continue
                         except:
-                            pass              
+                            pass 
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
                         
             #compare with current resources
             if metal>mstorage*0.9:
