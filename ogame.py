@@ -34,7 +34,7 @@ time.sleep(1)
 accept_button = wait.until(EC.element_to_be_clickable((By.XPATH,"//button[@title='Consenti cookie essenziali e facoltativi']")))
 accept_button.click()
 email_field = wait.until(EC.element_to_be_clickable((By.XPATH,"//input[@id='email']")))
-email_field.send_keys("email")
+email_field.send_keys("username")
 password_field = wait.until(EC.element_to_be_clickable((By.XPATH,"//input[@id='pass']")))
 password_field.send_keys("pass")
 time.sleep(1)
@@ -93,13 +93,16 @@ def mines():
         pass
     global y
     y=y+1
-    time.sleep(10) 
-    restsec=60
+    ############
+    restsec=int(random.random()*300+1500)
+    #restsec=6
+    ###########
     restmin=int(restsec/60)
     print("Cycle n°",y,"starting in",restmin," minutes")
     time.sleep(restsec)
     try:
-        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click()   
+        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="planet-33625789"]'))).click() 
+        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click() 
     except:
         pass
     if driver.current_url =="https://lobby.ogame.gameforge.com/it_IT/hub":
@@ -130,19 +133,18 @@ def mines():
         parent_span_element = driver.find_element(By.CLASS_NAME,"metalMine")
         child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
         level = int(child_span_element.get_attribute("data-value"))
-        metalcost = int(90*1.5**level)
-        
+        metalcost = int(((60+22.5)*1.5**level)/((1.35*10*(level+1)*1.1**(level+1))-(1.35*10*level*1.1**level)))      
         # crystal mine cost
         parent_span_element = driver.find_element(By.CLASS_NAME,"crystalMine")
         child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
         level = int(child_span_element.get_attribute("data-value"))
-        crystalcost = int(96*1.6**level)
+        crystalcost = int(((48+36)*1.6**level)/((10*(level+1)*1.1**(level+1))-(10*level*1.1**level)))
         
         # deuterium cost
         parent_span_element = driver.find_element(By.CLASS_NAME,"deuteriumSynthesizer")
         child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
         level = int(child_span_element.get_attribute("data-value"))
-        deutcost = int(375*1.5**level)
+        deutcost = int(((225+107.5)*1.5**level)/((10*(level+1)*1.1**(level+1))-(10*level*1.1**level)))
 
         #current energy
         span_element = driver.find_element(By.ID, "resources_energy")
@@ -228,23 +230,23 @@ def mines():
            
                     
         #compare with current resources
-        if metal>mstorage*0.9:
+        if metal>mstorage*0.95:
             try:
-                wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[8]/span/button'))).click()
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[8]/span/button'))).click()
                 print(f"Colony {i} Metal Deposit Upgraded")
                 expeditions()
             except:
                 print("Couldn't build Metal Deposit")
-        elif crystal>cstorage*0.9:
+        elif crystal>cstorage*0.95:
             try:
-                wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[9]/span/button'))).click()
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[9]/span/button'))).click()
                 print(f"Colony {i} Crystal Deposit Upgraded")
                 expeditions()
             except:
                 print("Couldn't build Crystal Deposit")
-        elif deuterium>dstorage*0.9:
+        elif deuterium>dstorage*0.95:
             try:
-                wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[10]/span/button'))).click()
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[10]/span/button'))).click()
                 print(f"Colony {i} Deuterium Deposit Upgraded")
                 expeditions()
             except:
@@ -314,7 +316,7 @@ def expeditions():
         SHIP = driver.find_element(By.CLASS_NAME,"transporterLarge") 
         SHIP2 = SHIP.find_element(By.CLASS_NAME,"amount") 
         NSHIP = int(SHIP2.get_attribute("data-value"))
-        amountToSend=math.floor(NSHIP/(slotAvailable+0.5))
+        amountToSend=min(math.floor(NSHIP/(slotAvailable+2)), 400)
         ASHIP=driver.find_element(By.XPATH,'//*[@id="civil"]/li[2]/input')
         ASHIP.click()
         ASHIP.send_keys(str(amountToSend))
@@ -347,6 +349,12 @@ def expeditions():
         coordinate3=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="position"]')))
         coordinate3.click()
         coordinate3.send_keys("16")
+        test=random.random()
+        if test>0.7:
+            coordinate2=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="system"]')))
+            coordinate2.click()
+            coordinate2.send_keys("181")
+        
         time.sleep(1)
         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="missionButton15"]'))).click()
         wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="sendFleet"]'))).click()
@@ -362,20 +370,22 @@ def expeditions():
         currentExpedition = int(numbers[0])  # convert the first number to an integer and store it in variable x
         totalExpedition = int(numbers[1])  # convert the second number to an integer and store it in variable y
         slotAvailable=totalExpedition-currentExpedition
-        time.sleep(1)
+        restsec=int(random.random()*8+3)
+        time.sleep(restsec)
     helpcolonies()
 
 
 def helpcolonies():
     
-    for i in [33626272,33626296,33626770,33627135,33627278]:
-        planetdata={}
-        
+    for i in [33626272,33626296,33626770,33627135,33627278,33627980,33628986,33630229,33634072]:
+
         try:
             wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="planet-{i}"]'))).click()
             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
         except:
             print("couldn't select planet")
+        
+        
         
         #solar cost
         parent_span_element = driver.find_element(By.CLASS_NAME,"solarPlant")
@@ -389,6 +399,83 @@ def helpcolonies():
         data_raw = span_element.text.replace(".", "")
         energy = float(data_raw)
         
+        
+        #satelites builder
+        if energy<0 and solarlevel>=20:
+            ###check if there are satelites under construction
+            satcon=0
+            for j in range(1,5):
+                for k in range(1,6):        
+                    try:
+                        td_element = driver.find_element(By.XPATH, f'//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[2]/tbody/tr[{j}]/td[{k}]')
+                        img_element = td_element.find_element(By.TAG_NAME, "img")
+                        src = img_element.get_attribute("src")
+                        if src == "https://gf2.geo.gfsrv.net/cdnd3/5f3ca7e91fc0a9b1ee014c3c01ea41.jpg":
+                            satcon=1
+                    except:
+                        pass
+
+            try:
+                td_element = driver.find_element(By.XPATH, '//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[1]/tbody/tr[2]/td/div[1]')
+                img_element = td_element.find_element(By.TAG_NAME, "img")
+                src = img_element.get_attribute("src")
+                if src == "https://gf2.geo.gfsrv.net/cdnda/665c65072887153d44a6684ec276e9.jpg":
+                    satcon=1
+            except:
+                pass
+            if satcon==0:
+                try:
+                    wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[6]'))).click()
+                    text=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
+                    text.click()
+                    text.send_keys(10)
+                    try:
+                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologydetails"]/div[2]/div/div[3]/button'))).click()
+                        print("satelites built")
+                    except:
+                        print("couldn't build satelites")
+                except:
+                    print("satelites not available")    
+        #deut sender
+        
+        span_element = driver.find_element(By.ID, "resources_deuterium")
+        data_raw = span_element.text.replace(".", "").replace(",",".")
+        if data_raw[-1] == "M":
+            deuterium = float(data_raw[:-1]) * 1000000
+        else:
+            deuterium = float(data_raw)
+            
+        if deuterium>1500000:
+            try:
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[9]/a'))).click()
+                ASHIP=driver.find_element(By.XPATH,'//*[@id="civil"]/li[2]/input')
+                ASHIP.click()
+                ASHIP.send_keys(str("200"))
+                
+                #send
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="continueToFleet2"]'))).click()
+                coordinate1=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="galaxy"]')))
+                coordinate1.click()
+                coordinate1.send_keys("4")
+                coordinate2=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="system"]')))
+                coordinate2.click()
+                coordinate2.send_keys("180")
+                coordinate3=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="position"]')))
+                coordinate3.click()
+                coordinate3.send_keys("8")
+                time.sleep(1) 
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="missionButton3"]'))).click()
+                metalamount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="deuterium"]')))
+                metalamount.click()
+                metalamount.send_keys(f"{deuterium}") 
+                wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="sendFleet"]'))).click()
+                print("Sent",deuterium,"deuterium to mother planet")
+                time.sleep(1)
+            except:
+                pass
+        
+        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
+        
         try:
             times=driver.find_element(By.ID,'buildingCountdown')
             total_seconds = 1
@@ -399,7 +486,7 @@ def helpcolonies():
             parent_span_element = driver.find_element(By.CLASS_NAME,"metalMine")
             child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
             level = int(child_span_element.get_attribute("data-value"))
-            totmetalcost = int(90*1.5**level)
+            totmetalcost = int(((60+22.5)*1.5**level)/((1.35*10*(level+1)*1.1**(level+1))-(1.35*10*level*1.1**level)))
             metal_metalneeded = int(60*1.5**level)
             metal_crystalneeded = int(15*1.5**level)
             
@@ -407,7 +494,7 @@ def helpcolonies():
             parent_span_element = driver.find_element(By.CLASS_NAME,"crystalMine")
             child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
             level = int(child_span_element.get_attribute("data-value"))
-            totcrystalcost = int(96*1.6**level)
+            totcrystalcost = int(((48+36)*1.6**level)/((10*(level+1)*1.1**(level+1))-(10*level*1.1**level)))
             crystal_metalneeded = int(48*1.6**level)
             crystal_crystalneeded = int(24*1.6**level)
             
@@ -415,7 +502,7 @@ def helpcolonies():
             parent_span_element = driver.find_element(By.CLASS_NAME,"deuteriumSynthesizer")
             child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
             level = int(child_span_element.get_attribute("data-value"))
-            totdeutcost = int(375*1.5**level)
+            totdeutcost = int(((225+107.5)*1.5**level)/((10*(level+1)*1.1**(level+1))-(10*level*1.1**level)))
             deut_metalneeded = int(225*1.5**level)
             deut_crystalneeded = int(75*1.5**level)
             
@@ -499,42 +586,7 @@ def helpcolonies():
                             pass 
                 wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[2]/a'))).click()
             
-            #satelites builder
-            if energy<0 and solarlevel>=20:
-                ###check if there are satelites under construction
-                satcon=0
-                for j in range(1,5):
-                    for k in range(1,6):        
-                        try:
-                            td_element = driver.find_element(By.XPATH, f'//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[2]/tbody/tr[{j}]/td[{k}]')
-                            img_element = td_element.find_element(By.TAG_NAME, "img")
-                            src = img_element.get_attribute("src")
-                            if src == "https://gf2.geo.gfsrv.net/cdnd3/5f3ca7e91fc0a9b1ee014c3c01ea41.jpg":
-                                satcon=1
-                        except:
-                            pass
-
-                try:
-                    td_element = driver.find_element(By.XPATH, '//*[@id="productionboxshipyardcomponent"]/div/div[2]/table[1]/tbody/tr[2]/td/div[1]')
-                    img_element = td_element.find_element(By.TAG_NAME, "img")
-                    src = img_element.get_attribute("src")
-                    if src == "https://gf2.geo.gfsrv.net/cdnda/665c65072887153d44a6684ec276e9.jpg":
-                        satcon=1
-                except:
-                    pass
-                if satcon==0:
-                    try:
-                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="producers"]/li[6]'))).click()
-                        text=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
-                        text.click()
-                        text.send_keys(10)
-                        try:
-                            wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologydetails"]/div[2]/div/div[3]/button'))).click()
-                            print("satelites built")
-                        except:
-                            print("couldn't build satelites")
-                    except:
-                        print("satelites not available")    
+            
             
             #compare storage with current resources
             if metal>mstorage*0.9:
@@ -581,10 +633,8 @@ def helpcolonies():
                 try :
                     wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="producers"]/li[{up}]/span/button'))).click()
                     print(f"Colony {i} {up} Upgraded")
-                    continue
                 except:
                     print("couldn't upgrade") 
-                    continue
                    
             else:
                 #get coordinates
@@ -627,6 +677,10 @@ def helpcolonies():
                     missingcrystal1=crystal-missingcrystal
                     
                     print(missingmetal,missingcrystal)
+                    #######SEND AT LEAST 500-200K
+                    missingmetal=max(missingmetal,500000)
+                    missingcrystal=max(missingcrystal,200000)
+                    
                     
                     if missingmetal1>0 and missingcrystal1>0:
                         #check first research level
@@ -671,7 +725,11 @@ def helpcolonies():
                             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="sendFleet"]'))).click()
                             time.sleep(1)  
                             print("sent",missingmetal,"Metal and",missingcrystal,"Crystal at",coords)
-    cargos()  
+        
+        
+    
+    
+    lifeform()  
     
 
 ###CREATE NEW CARGOS
@@ -713,18 +771,69 @@ def cargos():
             wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies_civil"]/ul/li[2]'))).click()
             amount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="build_amount"]')))
             amount.click()
-            amount.send_keys(5)
+            amount.send_keys(100)
             try:
                 amount=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologydetails"]/div[2]/div/div[3]/button')))
                 amount.click()
                 print("Cargo Builded")
-                mines()
             except:
-                pass 
-    mines()
+                pass
+            
+    lifeform()
     
 
 
+
+def lifeform():
+    lifeform=1
+    if lifeform==1:
+        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="menuTable"]/li[3]/a'))).click()
+        for i in [33626272,33626296,33626770,33627135,33627278,33627980,33628986,33630229,33634072]:
+            try:
+                wait.until(EC.element_to_be_clickable((By.XPATH,f'//*[@id="planet-{i}"]'))).click()
+            except:
+                continue
+            
+            #get race
+            div_element = driver.find_element(By.XPATH,"//div[contains(@class, 'lifeform')]")
+            class_attribute = div_element.get_attribute('class')
+            match = re.search(r'lifeform(\d+)', class_attribute)
+            civilization = int(match.group(1))
+            
+            try:
+                times=driver.find_element(By.ID,'buildingCountdown')
+                total_seconds = 1
+            except:
+                total_seconds = 0 
+            if total_seconds == 0:
+                targetlevel1=51
+                targetlevel2=52
+                
+                #lifeform 1 level
+                parent_span_element = driver.find_element(By.CLASS_NAME,f"lifeformTech1{civilization}101")
+                child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+                level1 = int(child_span_element.get_attribute("data-value"))
+                
+                #lifeform 2 level
+                parent_span_element = driver.find_element(By.CLASS_NAME,f"lifeformTech1{civilization}102")
+                child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
+                level2 = int(child_span_element.get_attribute("data-value"))
+                
+                
+                if level1<targetlevel1 and level1<level2:
+                    try:
+                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies"]/ul/li[1]/span/button'))).click()
+                        continue
+                    except:
+                        pass
+                if level2<targetlevel2:
+                    try:
+                        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="technologies"]/ul/li[2]/span/button'))).click()
+                        continue
+                    except:
+                        pass
+                    
+    mines()
 
 def loop():                  
     try:
@@ -732,6 +841,9 @@ def loop():
     except:
         print("error, restarting")
         loop()
-        
+       
+
+    
+    
 
 loop()
