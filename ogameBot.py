@@ -21,7 +21,7 @@ class OGameBot:
     def __init__(self):
         """Initialize the bot and create an undetected Chrome driver."""
         self.driver = self.create_undetected_driver()
-        self.wait = WebDriverWait(self.driver, 3)
+        self.wait = WebDriverWait(self.driver, 10)
 
         # Dictionary for button clicks
         self.xpathList = {
@@ -33,7 +33,21 @@ class OGameBot:
             "defense": '//*[@id="menuTable"]/li[8]/a',
             "lifeform": '//*[@id="menuTable"]/li[3]/a',
             "overview": '//*[@id="menuTable"]/li[1]/a',
-            "logout": '//*[@id="logout"]'
+            "logout": '//*[@id="logout"]',
+            "fleet2": '//*[@id="continueToFleet2"]',
+            "expedition": '//*[@id="missionButton15"]',
+            "colonisation": '//*[@id="missionButton7"]',
+            "recycle": '//*[@id="missionButton8"]',
+            "transport": '//*[@id="missionButton3"]',
+            "deployment": '//*[@id="missionButton4"]',
+            "espionage": '//*[@id="missionButton6"]',
+            "acsdefend": '//*[@id="missionButton5"]',
+            "attack": '//*[@id="missionButton1"]',
+            "acsattack": '//*[@id="missionButton2"]',
+            "moondestruction": '//*[@id="missionButton9"]',
+            "sendFleet": '//*[@id="sendFleet"]',
+            
+            "acceptCookies": '//*[@id="ingamepage"]/div[5]/div/div/span[2]/button[2]',
         }
 
         # Upgrade buttons
@@ -45,6 +59,11 @@ class OGameBot:
             "metalDeposit": '//*[@id="producers"]/li[8]/span/button',
             "crystalDeposit": '//*[@id="producers"]/li[9]/span/button',
             "deuteriumDeposit": '//*[@id="producers"]/li[10]/span/button',
+        }
+        
+        # Mission List
+        self.missionList = {
+            
         }
 
     def create_undetected_driver(self):
@@ -112,10 +131,13 @@ class OGameBot:
             try:
                 self.wait.until(EC.element_to_be_clickable((By.XPATH, path))).click()
                 print(f"Clicked on {button}")
+                return True
             except:
                 print(button, " not clickable")
+                return False
         else:
             print(f"Button '{button}' not found in xpathList")
+            return False
     
     def upgrade(self, button):
         """Clicks the upgrade button for a specific building."""
@@ -186,7 +208,12 @@ class OGameBot:
         # Solar Plant cost
         solar_plant = self.driver.find_element(By.CLASS_NAME, "solarPlant")
         level = int(solar_plant.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
-        costs["solar"] = [75*1.5**(level-1),25*1.5**(level-1),0,0]
+        costs["solar"] = [75*1.5**(level-1),25*1.5**(level-1),0]
+        
+        # Fusion Reactor
+        fusion_plant = self.driver.find_element(By.CLASS_NAME, "fusionPlant")
+        level = int(fusion_plant.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
+        costs["fusion"] = [900*1.8**(level-1),360*1.8**(level-1),180*1.8**(level-1)]
         
         # metal deposit storage
         parent_span_element = self.driver.find_element(By.CLASS_NAME,"metalStorage")
@@ -216,23 +243,27 @@ class OGameBot:
         except:
             print("Object not found")
             return 0
-        
+     
+    def effectiveCost(self,metal,crystal,deuterium):
+        totalCost=metal/5+crystal/3+deuterium/2
+        return totalCost
+    
     def mostEfficientUpgrade(self):
     
         # Metal Mine cost
         metal_mine = self.driver.find_element(By.CLASS_NAME, "metalMine")
         level = int(metal_mine.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
-        metalEfficiency = int(((60+22.5) * 1.5**level) / ((1.35*10*(level+1)*1.1**(level+1)) - (1.35*10*level*1.1**level)))
+        metalEfficiency = int(((60/5+15/3) * 1.5**level) / ((1.35*10*(level+1)*1.1**(level+1)) - (1.35*10*level*1.1**level)))
                                   
         # Crystal Mine cost
         crystal_mine = self.driver.find_element(By.CLASS_NAME, "crystalMine")
         level = int(crystal_mine.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
-        crystalEfficiency = int(((48+36) * 1.6**level) / ((10*(level+1)*1.1**(level+1)) - (10*level*1.1**level)))
+        crystalEfficiency = int(((48/5+24/3) * 1.6**level) / ((10*(level+1)*1.1**(level+1)) - (10*level*1.1**level)))
                                     
         # Deuterium Synthesizer cost
         deut_synth = self.driver.find_element(By.CLASS_NAME, "deuteriumSynthesizer")
         level = int(deut_synth.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
-        deuteriumEfficiency = int(((225+107.5) * 1.5**level) / ((10*(level+1)*1.1**(level+1)) - (10*level*1.1**level)))
+        deuteriumEfficiency = int(((225/5+75/3) * 1.5**level) / ((10*(level+1)*1.1**(level+1)) - (10*level*1.1**level)))
         
         cheapest=min(metalEfficiency,crystalEfficiency,deuteriumEfficiency)
         if cheapest==metalEfficiency:
@@ -241,7 +272,32 @@ class OGameBot:
             return "crystal"
         elif cheapest==deuteriumEfficiency:
             return "deuterium"
-            
+    
+    def cheapestUpgrade(self):
+        # Metal Mine cost
+        metal_mine = self.driver.find_element(By.CLASS_NAME, "metalMine")
+        level = int(metal_mine.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
+        metalEfficiency = int((60/5+15/3) * 1.5**level)
+                                  
+        # Crystal Mine cost
+        crystal_mine = self.driver.find_element(By.CLASS_NAME, "crystalMine")
+        level = int(crystal_mine.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
+        crystalEfficiency = int((48/5+24/3) * 1.6**level)
+                                    
+        # Deuterium Synthesizer cost
+        deut_synth = self.driver.find_element(By.CLASS_NAME, "deuteriumSynthesizer")
+        level = int(deut_synth.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
+        deuteriumEfficiency = int((225/5+75/3) * 1.5**level)
+        
+        cheapest=min(metalEfficiency,crystalEfficiency,deuteriumEfficiency)
+        if cheapest==metalEfficiency:
+            return "metal"
+        elif cheapest==crystalEfficiency:
+            return "crystal"
+        elif cheapest==deuteriumEfficiency:
+            return "deuterium"
+    
+        
     
     def get_remaining_build_time(self):
         try:
@@ -294,7 +350,78 @@ class OGameBot:
             print("Error retrieving storage capacity")
             return None
 
+    def getExpeditionCount(self):
+        ######## GET THE EXPEDITIONS
+        span_element = self.driver.find_element(By.XPATH,'//*[@id="slots"]/div[2]/span')
+        text = span_element.text
+        match = re.search(r"\d+/\d+", text)  # find the first occurrence of a number sequence of the form "x/y"
+        numbers = match.group().split("/")  # extract the numbers as a list
+        currentExpedition = int(numbers[0])  # convert the first number to an integer and store it in variable x
+        totalExpedition = int(numbers[1])  # convert the second number to an integer and store it in variable y
+        return [currentExpedition,totalExpedition]
     
+    def getShipAmount(self,shipType):
+        try:
+            SHIP = self.driver.find_element(By.CLASS_NAME,shipType) 
+            SHIP2 = SHIP.find_element(By.CLASS_NAME,"amount") 
+            NSHIP = int(SHIP2.get_attribute("data-value"))
+            return NSHIP
+        except:
+            return 0
+    
+    def getFleet(self):
+        fleetList = {
+            "Small Cargo": self.getShipAmount("transporterSmall"),
+            "Large Cargo": self.getShipAmount("transporterLarge"),
+            "Colony Ship": self.getShipAmount("colonyShip"),
+            "Recycler": self.getShipAmount("recycler"),
+            "Espionage Probe": self.getShipAmount("espionageProbe"),
+            "Light Fighter": self.getShipAmount("fighterLight"),
+            "Heavy Fighter": self.getShipAmount("fighterHeavy"),
+            "Cruiser": self.getShipAmount("cruiser"),
+            "Battleship": self.getShipAmount("battleship"),
+            "Battlecruiser": self.getShipAmount("interceptor"),
+            "Bomber": self.getShipAmount("bomber"),
+            "Destroyer": self.getShipAmount("destroyer"),
+            "Deathstar": self.getShipAmount("deathstar"),
+            "Reaper": self.getShipAmount("reaper"),
+            "Pathfinder": self.getShipAmount("technology.explorer"),
+        }
+        return fleetList
+    
+    def selectFleet(self,fleetType,amount):
+        try:
+            if fleetType>10:
+                fleetType=fleetType-10
+                SHIP=self.driver.find_element(By.XPATH,f'//*[@id="civil"]/li[{fleetType}]/input')
+            else:
+                SHIP=self.driver.find_element(By.XPATH,f'//*[@id="military"]/li[{fleetType}]/input')
+            SHIP.click()
+            SHIP.send_keys(str(amount))
+        except:
+            print("no fleet number:", fleetType, " to send")
+            return False
+
+        return True
+    
+    def fleetCoordinates(self,galaxy,system,position):
+        try:
+            if galaxy>0:
+                coordinate3=self.wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="galaxy"]')))
+                coordinate3.click()
+                coordinate3.send_keys(str(galaxy))
+            if system>0:
+                coordinate2=self.wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="system"]')))
+                coordinate2.click()
+                coordinate2.send_keys(str(system))
+            if position>0:
+                coordinate1=self.wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="position"]')))
+                coordinate1.click()
+                coordinate1.send_keys(str(position))
+        except:
+            print("couldn't set coordinates")
+
+
 # 🌟 Create a global instance of the bot
 bot = OGameBot()
 
@@ -337,3 +464,21 @@ def mostEfficientUpgrade():
 
 def getLevel(obj):
     return bot.getLevel(obj)
+
+def cheapestUpgrade():
+    return bot.cheapestUpgrade()
+
+def effectiveCost(metal,crystal,deuterium):
+    return bot.effectiveCost(metal,crystal,deuterium)
+
+def getExpeditionCount():
+    return bot.getExpeditionCount()
+
+def getFleet():
+    return bot.getFleet()
+
+def selectFleet(fleetType,amount):
+    return bot.selectFleet(fleetType,amount)
+
+def fleetCoordinates(galaxy,system,position):
+    return bot.fleetCoordinates(galaxy, system, position)
