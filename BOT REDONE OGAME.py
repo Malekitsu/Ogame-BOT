@@ -19,9 +19,9 @@ import math
 from selenium import webdriver
 import undetected_chromedriver as uc
 
-from ogameBot import login, click, upgrade, get_planet_ids, get_resources, close, clickPlanet, get_upgrade_costs, get_remaining_build_time, get_storage_capacity, mostEfficientUpgrade, getLevel, check_login
-
-
+from ogameBot import login, click, upgrade, get_planet_ids, get_resources, close, clickPlanet, get_upgrade_costs
+from ogameBot import get_remaining_build_time, get_storage_capacity, mostEfficientUpgrade, getLevel, check_login
+from ogameBot import cheapestUpgrade, effectiveCost, getExpeditionCount, getFleet, selectFleet, fleetCoordinates
 
 def human_delay(base=1, spread=2):
     time.sleep(abs(base + random.gauss(0, spread/3)))
@@ -77,7 +77,7 @@ mail="ruben.toccafondo@gmail.com"
 password="Narutorengan9!"
 
 login(mail, password)
-
+click("acceptCookies")
 class Planet:
     Metal: int = 0
     Crystal: int = 0
@@ -105,6 +105,7 @@ for i in range(0,50):
     Planets[i]=Planet()
 
 
+
 ###Start variables here
 expeditionSentNumber=0
 y=0
@@ -119,8 +120,7 @@ def mines():
         clickPlanet(i)
         click("resources")
         
-        currentBuildTime=get_remaining_build_time()
-        if currentBuildTime != 0:
+        if get_remaining_build_time()!= 0:
             print("already building")
             continue
             
@@ -152,16 +152,29 @@ def mines():
         elif pl.Deuterium>pl.DeuteriumStorage*0.95:
             upgrade("deuteriumDeposit")
             
-            
-        if pl.Energy<0 and pl.SolarLevel<=20:
-            upgrade("solar")
-        else:
-            up=mostEfficientUpgrade()
-            try :
-                upgrade(up)
-                print(up," Upgraded")
-            except:
-                print("Not enough resources to upgrade ",up)
+        
+        costs=get_upgrade_costs()
+        solarCost=effectiveCost(costs["solar"][0],costs["solar"][1],costs["solar"][2])
+        fusionCost=effectiveCost(costs["fusion"][0],costs["fusion"][1],costs["fusion"][2])
+        
+        if pl.Energy<0:
+            if pl.SolarLevel<=15:
+                upgrade("solar")
+            elif solarCost<20 and solarCost/2<fusionCost:
+                upgrade("fusion")
+            elif solarCost<20:
+                upgrade("solar")
+            else:
+                upgrade("fusion")
+            continue
+        
+        #up=mostEfficientUpgrade()
+        up=cheapestUpgrade()
+        try :
+            upgrade(up)
+            print(up," Upgraded")
+        except:
+            print("Not enough resources to upgrade ",up)
     
     return
 
@@ -173,90 +186,51 @@ def mines():
 def expeditions():
     clickPlanet(0)
     click("fleet")
-    pl=Planets[0]
-    ######## GET THE EXPEDITIONS
-    span_element = driver.find_element(By.XPATH,'//*[@id="slots"]/div[2]/span')
-    text = span_element.text
-    match = re.search(r"\d+/\d+", text)  # find the first occurrence of a number sequence of the form "x/y"
-    numbers = match.group().split("/")  # extract the numbers as a list
-    currentExpedition = int(numbers[0])  # convert the first number to an integer and store it in variable x
-    totalExpedition = int(numbers[1])  # convert the second number to an integer and store it in variable y
-    slotAvailable=totalExpedition-currentExpedition    
+    expeditions=getExpeditionCount()
+    currentExpeditions=expeditions[0]
+    totaExpeditions=expeditions[1]
+    
+    ############# REMOVE LATER
+    totaExpeditions=1
+    #############
+    
+    slotAvailable=totaExpeditions-currentExpeditions
+    
+    
+    fleet=getFleet()
     ######## IF SLOT AVAILABLE START
-    try:
-        while slotAvailable>0:
-            ###select fleet
-            #Small Cargo
-            SHIP = driver.find_element(By.CLASS_NAME,"transporterSmall") 
-            SHIP2 = SHIP.find_element(By.CLASS_NAME,"amount") 
-            NSHIP = int(SHIP2.get_attribute("data-value"))
-            amountToSend=math.floor(NSHIP/slotAvailable)
-            ASHIP=driver.find_element(By.XPATH,'//*[@id="civil"]/li[1]/input')
-            ASHIP.click()
-            ASHIP.send_keys(str(amountToSend))
-            #Large Cargo
-            SHIP = driver.find_element(By.CLASS_NAME,"transporterLarge") 
-            SHIP2 = SHIP.find_element(By.CLASS_NAME,"amount") 
-            NSHIP = int(SHIP2.get_attribute("data-value"))
-            amountToSend=min(math.floor(NSHIP/(slotAvailable+2)), 400)
-            ASHIP=driver.find_element(By.XPATH,'//*[@id="civil"]/li[2]/input')
-            ASHIP.click()
-            ASHIP.send_keys(str(amountToSend))
-            #1 Probe
-            ASHIP=driver.find_element(By.XPATH,'//*[@id="civil"]/li[5]/input')
-            ASHIP.click()
-            ASHIP.send_keys("1")
-            #1 pathfinder if available
-            try:
-                ASHIP=driver.find_element(By.XPATH,'//*[@id="military"]/li[10]/input')
-                ASHIP.click()
-                ASHIP.send_keys("1")
-            except:
-                print("No Pathfinders")
-            #extra ship
-            battleshipsent=0
-            for l in [9,7,6,5,4]:
-                if battleshipsent==0:
-                    try:
-                        ASHIP=driver.find_element(By.XPATH,f'//*[@id="military"]/li[{l}]/input')
-                        ASHIP.click()
-                        ASHIP.send_keys("1")
-                        battleshipsent=1
-                    except:
-                        pass
+    if slotAvailable>0:
+        ###select fleet
+        smallCargoNumber=math.floor(fleet["Small Cargo"]/slotAvailable)
+        selectFleet(11,smallCargoNumber)
         
-        ###continue
-        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="continueToFleet2"]'))).click()
-        coordinate3=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="position"]')))
-        coordinate3.click()
-        coordinate3.send_keys("16")
-        test=random.random()
-        if test>0.7:
-            coordinate2=wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="system"]')))
-            coordinate2.click()
-            coordinate2.send_keys("181")
+        largeCargoNumber=min(math.floor(fleet["Large Cargo"]/(slotAvailable)), 400)
+        selectFleet(12,largeCargoNumber)
         
-        time.sleep(1)
-        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="missionButton15"]'))).click()
-        wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="sendFleet"]'))).click()
+        #1 Probe
+        selectFleet(15,1)
+        #1 pathfinder if available
+        selectFleet(10,1)
+        #extra ship
+        sent=False
+        for l in [9,7,6,5,4,3,2,1]:
+            if sent==0:
+                if selectFleet(l,1):
+                    sent=True
+    
+    time.sleep(1)            
+    click("fleet2")
+    time.sleep(1)
+    fleetCoordinates(0,0,16)
+    click("expedition")
+    time.sleep(1)
+    sent=click("sendFleet")
+    
+    if sent:
         global expeditionSentNumber
         expeditionSentNumber=expeditionSentNumber+1
         print("Expedition n°",expeditionSentNumber,"have been sent")
-        time.sleep(2)
-        ######## GET THE EXPEDITIONS AGAIN TO CHECK FOR LOOP
-        span_element = driver.find_element(By.XPATH,'//*[@id="slots"]/div[2]/span')
-        text = span_element.text
-        match = re.search(r"\d+/\d+", text)  # find the first occurrence of a number sequence of the form "x/y"
-        numbers = match.group().split("/")  # extract the numbers as a list
-        currentExpedition = int(numbers[0])  # convert the first number to an integer and store it in variable x
-        totalExpedition = int(numbers[1])  # convert the second number to an integer and store it in variable y
-        slotAvailable=totalExpedition-currentExpedition
-        restsec=int(random.random()*8+3)
-    except:
-        print("couldn't start expedition")
-        pass
-        time.sleep(1)
-    helpcolonies()
+
 
 
 def helpcolonies():
@@ -729,7 +703,7 @@ def loop():
     try:        
         check_login()
         mines()
-        #expeditions()
+        expeditions()
         #helpcolonies()
         #lifeform()
         
@@ -747,7 +721,6 @@ def loop():
        
 
     
-    
-mines()
+
 
 
