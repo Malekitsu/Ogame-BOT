@@ -21,7 +21,7 @@ class OGameBot:
     def __init__(self):
         """Initialize the bot and create an undetected Chrome driver."""
         self.driver = self.create_undetected_driver()
-        self.wait = WebDriverWait(self.driver, 10)
+        self.wait = WebDriverWait(self.driver, 5)
 
         # Dictionary for button clicks
         self.xpathList = {
@@ -47,7 +47,11 @@ class OGameBot:
             "moondestruction": '//*[@id="missionButton9"]',
             "sendFleet": '//*[@id="sendFleet"]',
             
-            "acceptCookies": '//*[@id="ingamepage"]/div[5]/div/div/span[2]/button[2]',
+            "metal": '//*[@id="metal"]',
+            "crystal": '//*[@id="crystal"]',
+            "deuterium": '//*[@id="deuterium"]',
+            
+            "acceptCookies": '//*[@id="ingamepage"]/div[4]/div/div/span[2]/button[2]',
         }
 
         # Upgrade buttons
@@ -56,6 +60,7 @@ class OGameBot:
             "crystal": '//*[@id="producers"]/li[2]/span/button',
             "deuterium": '//*[@id="producers"]/li[3]/span/button',
             "solar": '//*[@id="producers"]/li[4]/span/button',
+            "fusion": '//*[@id="producers"]/li[5]/span/button',
             "metalDeposit": '//*[@id="producers"]/li[8]/span/button',
             "crystalDeposit": '//*[@id="producers"]/li[9]/span/button',
             "deuteriumDeposit": '//*[@id="producers"]/li[10]/span/button',
@@ -99,7 +104,7 @@ class OGameBot:
         parent = self.driver.window_handles[1]
         chld = self.driver.window_handles[0]
         self.driver.switch_to.window(chld)
-        time.sleep(1)
+        time.sleep(5)
         self.driver.close()
         self.driver.switch_to.window(parent)
 
@@ -115,7 +120,7 @@ class OGameBot:
                 parent = self.driver.window_handles[1]
                 chld = self.driver.window_handles[0]
                 self.driver.switch_to.window(chld)
-                time.sleep(1)
+                time.sleep(5)
                 self.driver.close()
                 self.driver.switch_to.window(parent)
 
@@ -146,6 +151,7 @@ class OGameBot:
             try:
                 self.wait.until(EC.element_to_be_clickable((By.XPATH, path))).click()
                 print(f"Upgraded {button}")
+                time.sleep(1)
             except:
                 print(button, " not clickable")
         else:
@@ -191,47 +197,47 @@ class OGameBot:
         metal_mine = self.driver.find_element(By.CLASS_NAME, "metalMine")
         level = int(metal_mine.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
         #costs["metal_mine"] = int(((60+22.5) * 1.5**level) / ((1.35*10*(level+1)*1.1**(level+1)) - (1.35*10*level*1.1**level)))
-        costs["metal"] = [60*1.5**(level-1),15*1.5**(level-1),0]
+        costs["metal"] = [60*1.5**(level),15*1.5**(level),0]
                                   
         # Crystal Mine cost
         crystal_mine = self.driver.find_element(By.CLASS_NAME, "crystalMine")
         level = int(crystal_mine.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
         #costs["crystal_mine"] = int(((48+36) * 1.6**level) / ((10*(level+1)*1.1**(level+1)) - (10*level*1.1**level)))
-        costs["crystal"] = [48*1.5**(level-1),24*1.6**(level-1),0]
+        costs["crystal"] = [48*1.6**(level),24*1.6**(level),0]
                                     
         # Deuterium Synthesizer cost
         deut_synth = self.driver.find_element(By.CLASS_NAME, "deuteriumSynthesizer")
         level = int(deut_synth.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
         #costs["deuterium_synthesizer"] = int(((225+107.5) * 1.5**level) / ((10*(level+1)*1.1**(level+1)) - (10*level*1.1**level)))
-        costs["deuterium"] = [225*1.5**(level-1),75*1.5**(level-1),0]
+        costs["deuterium"] = [225*1.5**(level),75*1.5**(level),0]
                                              
         # Solar Plant cost
         solar_plant = self.driver.find_element(By.CLASS_NAME, "solarPlant")
         level = int(solar_plant.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
-        costs["solar"] = [75*1.5**(level-1),25*1.5**(level-1),0]
+        costs["solar"] = [75*1.5**(level),25*1.5**(level),0]
         
         # Fusion Reactor
         fusion_plant = self.driver.find_element(By.CLASS_NAME, "fusionPlant")
         level = int(fusion_plant.find_element(By.CLASS_NAME, "level").get_attribute("data-value"))
-        costs["fusion"] = [900*1.8**(level-1),360*1.8**(level-1),180*1.8**(level-1)]
+        costs["fusion"] = [900*1.8**(level),360*1.8**(level),180*1.8**(level)]
         
         # metal deposit storage
         parent_span_element = self.driver.find_element(By.CLASS_NAME,"metalStorage")
         child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
         level = int(child_span_element.get_attribute("data-value"))
-        costs["metalStorage"] = [1000*2**(level-1),0,0]
+        costs["metalDeposit"] = [1000*2**(level),0,0]
         
         # crystal deposit storage
         parent_span_element = self.driver.find_element(By.CLASS_NAME,"crystalStorage")
         child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
         level = int(child_span_element.get_attribute("data-value"))
-        costs["metalStorage"] = [1000*2**(level-1),500*2**(level-1),0]
+        costs["crystalDeposit"] = [1000*2**(level),500*2**(level),0]
         
         # deuterium deposit storage
         parent_span_element = self.driver.find_element(By.CLASS_NAME,"deuteriumStorage")
         child_span_element = parent_span_element.find_element(By.CLASS_NAME,"level")
         level = int(child_span_element.get_attribute("data-value"))
-        costs["metalStorage"] = [1000*2**(level-1),1000*2**(level-1),0]
+        costs["deuteriumDeposit"] = [1000*2**(level),1000*2**(level),0]
         
         return costs
     
@@ -421,6 +427,37 @@ class OGameBot:
         except:
             print("couldn't set coordinates")
 
+    def get_planet_coordinates(self):
+        planets = self.driver.find_elements(By.CSS_SELECTOR, "a.planetlink")
+
+        # Dictionary to store planet ID -> coordinates mapping
+        planet_data = {}
+        count=0
+        for planet in planets:        
+            # Extract coordinates from text
+            try:
+                coordinates = planet.find_element(By.CSS_SELECTOR, ".planet-koords").text.strip("[]")
+            except:
+                coordinates = "Unknown"
+        
+            # Store in dictionary
+            planet_data[count] = coordinates
+            count=count+1
+        for key in planet_data:
+            galaxy, system, position = map(int, planet_data[key].split(":"))
+            planet_data[key] = (galaxy, system, position)
+        return planet_data
+    
+    def sendResources(self,m,c,d):
+        metalamount=self.wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="metal"]')))
+        metalamount.click()
+        metalamount.send_keys(str(m)) 
+        crystalamount=self.wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="crystal"]')))
+        crystalamount.click()
+        crystalamount.send_keys(str(c))
+        deuteriumAmount=self.wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="deuterium"]')))
+        deuteriumAmount.click()
+        deuteriumAmount.send_keys(str(d)) 
 
 # 🌟 Create a global instance of the bot
 bot = OGameBot()
@@ -482,3 +519,9 @@ def selectFleet(fleetType,amount):
 
 def fleetCoordinates(galaxy,system,position):
     return bot.fleetCoordinates(galaxy, system, position)
+
+def get_planet_coordinates():
+    return bot.get_planet_coordinates()
+
+def sendResources(m,c,d):
+    return bot.sendResources(m,c,d)
